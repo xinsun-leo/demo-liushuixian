@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet - GMap.NET TileHost</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<link rel="stylesheet" href="dist/leaflet.css" />
+	<!--[if lte IE 8]>
+	<link rel="stylesheet" href="dist/leaflet-ie.css" />
+	<link rel="stylesheet" href="dist/locate-ie.css"/>
+	<![endif]-->
+	<link rel="stylesheet" href="dist/mobile.css" />
+	<link rel="stylesheet" href="dist/locate.css" />
+
+	<script src="dist/leaflet.js"></script>
+	<script src="dist/proj4js-compressed.js"></script>
+	<script src="dist/proj4leaflet.js"></script>
+	<script src="dist/locate.js" ></script>
+	<script src="dist/jquery-3.4.1.min.js" ></script>
+	<style>
+	    #mouse-position {
+            float: left;
+            position: absolute;
+            bottom: 5px;
+            /* 将z-index设置为显示在地图上层 */
+            z-index: 2000;
+        }
+	</style>
+	
+</head>
+<body>
+	<div id="map">
+		<div id="mouse-position"></div>
+	</div>
+	<script type="text/javascript">
+		var url_amp = 'tiles/{z}/{x}/{y}.png';
+	    var glayer_amap = new L.TileLayer(url_amp, { maxZoom: 18, attribution: '' });
+		var latlng = new L.LatLng( 39.9, 116.4);
+
+		var map = new L.Map('map', { center: latlng, zoom: 10, layers: [glayer_amap] });			
+
+		map.on('mousemove', function (e) {
+			document.getElementById('mouse-position').innerHTML = 
+            //JSON.stringify(e.containerPoint) + '<br />' +
+            JSON.stringify(e.latlng);
+		});
+		
+		function loaddata(){
+			$.ajax({
+				url: "http://localhost/data.js?" +  Date.now(),
+  				type:"get",   //请求方式
+				params:{"contentType": "application/json;charset=utf-8"},
+  				success:function(data){
+					result = JSON.parse(data);
+					var markers = []
+					$.each(result, function(i, item) {
+						var marker = L.marker(new L.LatLng(Number(item.longitude),Number(item.latitude)),{
+						  id:"id"+i,
+						  title: item.city
+						})
+						marker.bindPopup("<p> " +  item.IP + " </p>").openPopup();
+						markers.push(marker)
+					});
+					var layers = L.layerGroup(markers).addTo(map);
+				}
+			});
+			/*
+			$.getJSON("data.js", function(data) {
+				alert(data)
+				var markers = []
+				$.each(data, function(i, item) {
+					console.log(item);
+					var marker = L.marker([Number(item.latitude) ,Number(item.longitude)],{
+					  id:"id"+i,
+					  title: item.city
+					})
+					marker.bindPopup("<p> " +  item.IP + " </p>").openPopup();
+					markers.push(marker)
+				})
+				var layers = L.layerGroup(markers).addTo(map);
+			});
+			*/
+			
+		}
+		loaddata();
+    </script>
+</body>
+</html>
